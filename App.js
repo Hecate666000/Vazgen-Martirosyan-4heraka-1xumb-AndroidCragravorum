@@ -41,6 +41,7 @@ const App = () => {
       );
       setEditId(null);
     } else {
+      
       // Adding new entry
       const newEntry = {
         id: Math.random().toString(),
