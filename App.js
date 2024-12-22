@@ -1,4 +1,3 @@
-// Mileage Tracker App using React Native
 import React, { useState } from 'react';
 import {
   View,
@@ -7,6 +6,7 @@ import {
   Button,
   FlatList,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 
 const App = () => {
@@ -14,8 +14,9 @@ const App = () => {
   const [startMileage, setStartMileage] = useState('');
   const [endMileage, setEndMileage] = useState('');
   const [tripName, setTripName] = useState('');
+  const [editId, setEditId] = useState(null);
 
-  const handleAddTrip = () => {
+  const handleAddOrEditTrip = () => {
     if (!startMileage || !endMileage || !tripName) {
       alert('Please fill all fields');
       return;
@@ -30,16 +31,44 @@ const App = () => {
     }
 
     const distance = end - start;
-    const newEntry = {
-      id: Math.random().toString(),
-      tripName,
-      distance,
-    };
 
-    setMileageEntries([...mileageEntries, newEntry]);
+    if (editId) {
+      // Editing existing entry
+      setMileageEntries((prevEntries) =>
+        prevEntries.map((entry) =>
+          entry.id === editId ? { ...entry, tripName, distance } : entry
+        )
+      );
+      setEditId(null);
+    } else {
+      // Adding new entry
+      const newEntry = {
+        id: Math.random().toString(),
+        tripName,
+        distance,
+      };
+      setMileageEntries([...mileageEntries, newEntry]);
+    }
+
     setStartMileage('');
     setEndMileage('');
     setTripName('');
+  };
+
+  const handleEdit = (id) => {
+    const entry = mileageEntries.find((item) => item.id === id);
+    if (entry) {
+      setTripName(entry.tripName);
+      setStartMileage(entry.distance.toString());
+      setEndMileage('');
+      setEditId(id);
+    }
+  };
+
+  const handleDelete = (id) => {
+    setMileageEntries((prevEntries) =>
+      prevEntries.filter((entry) => entry.id !== id)
+    );
   };
 
   return (
@@ -69,7 +98,10 @@ const App = () => {
         keyboardType='numeric'
       />
 
-      <Button title='Add Trip' onPress={handleAddTrip} />
+      <Button
+        title={editId ? 'Update Trip' : 'Add Trip'}
+        onPress={handleAddOrEditTrip}
+      />
 
       <FlatList
         data={mileageEntries}
@@ -79,6 +111,20 @@ const App = () => {
             <Text style={styles.entryText}>
               {item.tripName}: {item.distance} miles
             </Text>
+            <View style={styles.actions}>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => handleEdit(item.id)}
+              >
+                <Text style={styles.actionText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDelete(item.id)}
+              >
+                <Text style={styles.actionText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       />
@@ -114,6 +160,25 @@ const styles = StyleSheet.create({
   },
   entryText: {
     fontSize: 16,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  editButton: {
+    backgroundColor: '#ffc107',
+    padding: 5,
+    borderRadius: 5,
+  },
+  deleteButton: {
+    backgroundColor: '#dc3545',
+    padding: 5,
+    borderRadius: 5,
+  },
+  actionText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
 
